@@ -92,6 +92,37 @@
         </div>
       </section>
 
+      <!-- Printer Presets -->
+      <section class="card">
+        <h2 data-i18n="presets_title">Printer Presets</h2>
+
+        <div class="presets-controls">
+          <div class="form-group">
+            <label data-i18n="select_preset">Select preset</label>
+            <select id="presetSelect">
+              <option value="">-- Select preset --</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label data-i18n="preset_name">Preset name</label>
+            <input type="text" id="presetName" placeholder="My Printer Setup">
+          </div>
+
+          <div class="preset-buttons">
+            <button id="savePresetBtn" class="btn-secondary" data-i18n="save_preset">Save as preset</button>
+            <button id="updatePresetBtn" class="btn-secondary" data-i18n="update_preset">Update preset</button>
+            <button id="deletePresetBtn" class="btn-secondary btn-danger" data-i18n="delete_preset">Delete preset</button>
+          </div>
+
+          <div class="preset-import-export">
+            <button id="exportPresetsBtn" class="btn-link" data-i18n="export_presets">Export presets</button>
+            <label for="importPresetsFile" class="btn-link" data-i18n="import_presets">Import presets</label>
+            <input type="file" id="importPresetsFile" accept="application/json" style="display: none;">
+          </div>
+        </div>
+      </section>
+
       <!-- Duplex Backside Settings -->
       <section class="card">
         <h2 data-i18n="duplex_title">3. Duplex Backside Settings</h2>
@@ -102,6 +133,32 @@
             Use Backside Transform + Offsets to calibrate: print on plain paper, hold to light, adjust, and repeat until aligned.
           </p>
         </div>
+
+        <!-- Print Assistant -->
+        <div class="helper-section">
+          <h3 data-i18n="helper_title">Print Assistant</h3>
+          <div class="form-group">
+            <label data-i18n="flip_mode">I will print double-sided using</label>
+            <select id="flipMode">
+              <option value="auto" data-i18n="flip_auto">Auto-detect</option>
+              <option value="short" data-i18n="flip_short_edge">Flip on short edge</option>
+              <option value="long" data-i18n="flip_long_edge">Flip on long edge</option>
+            </select>
+          </div>
+          <p class="helper-hint" data-i18n="helper_hint">
+            Based on your selection, we recommend the backside transform below. Adjust if needed.
+          </p>
+        </div>
+
+        <!-- Troubleshooting -->
+        <details class="troubleshooting">
+          <summary data-i18n="troubleshooting_title">Troubleshooting</summary>
+          <ul>
+            <li data-i18n="trouble_mirrored">Back is mirrored → Try "Mirror Horizontally" or "Rotate 180° + Mirror H"</li>
+            <li data-i18n="trouble_upside_down">Back is upside down → Try "Rotate 180°"</li>
+            <li data-i18n="trouble_shifted">Back is shifted → Adjust Offset X/Y</li>
+          </ul>
+        </details>
 
         <div class="form-grid">
           <div class="form-group">
@@ -124,6 +181,17 @@
             <label data-i18n="backside_offset_y">Backside Offset Y (mm)</label>
             <input type="number" id="backsideOffsetY" value="0" step="0.1" min="-50" max="50">
           </div>
+        </div>
+
+        <!-- Calibration Mode -->
+        <div class="calibration-section">
+          <label class="checkbox-label">
+            <input type="checkbox" id="calibrationMode">
+            <span data-i18n="calibration_mode">Calibration Mode</span>
+          </label>
+          <p class="calibration-hint" data-i18n="calibration_hint">
+            Generate a test pattern instead of QR codes to calibrate your printer alignment.
+          </p>
         </div>
       </section>
 

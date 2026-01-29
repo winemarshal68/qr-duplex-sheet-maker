@@ -14,7 +14,22 @@ Generate duplex-ready PDF sheets with QR codes for double-sided printing. Includ
   - 2-page PDF (front + back)
   - Multiple backside transforms (mirror, rotate, etc.)
   - Fine-tune offsets for perfect alignment
+- **Printer Presets**:
+  - Save and load your printer settings
+  - Built-in default presets (A4 3×3, A3 6×3)
+  - Export/import presets as JSON files
+  - Store all settings including transforms and offsets
+- **Print Assistant**:
+  - Auto-recommend backside transform based on flip mode
+  - Flip mode selector (short edge / long edge)
+  - Built-in troubleshooting tips
+- **Calibration Mode**:
+  - Generate test patterns instead of QR codes
+  - Calibrate printer alignment before production
+  - 3×3 grid with corner targets and crosshairs
+  - No QR image required in calibration mode
 - **Crop Marks**: Optional crop marks for precise cutting
+- **Input Validation**: Server-side validation for safe operation
 - **Bilingual UI**: Switch between English and Spanish
 
 ## Prerequisites
@@ -91,15 +106,49 @@ This runs `vercel dev` which simulates the Vercel serverless environment on your
 
 ## Usage
 
+### Quick Start
+
 1. **Upload a QR image** (PNG or JPG)
 2. **Configure page settings**:
    - Select paper size and orientation
    - Set margins and gutter spacing
    - Choose number of rows and columns
 3. **Set duplex backside options**:
-   - Choose a backside transform (default: Rotate 180°)
+   - Use Print Assistant to select your flip mode (short/long edge)
+   - System will auto-recommend the best backside transform
    - Adjust offsets if needed for printer calibration
 4. **Generate PDF** and download
+
+### Using Printer Presets
+
+1. **Save your settings**:
+   - Configure all your settings (paper size, margins, transforms, etc.)
+   - Enter a preset name
+   - Click "Save as preset"
+2. **Load a preset**:
+   - Select from the dropdown
+   - All settings will be applied automatically
+3. **Export/Import**:
+   - Export your presets as a JSON file to share or backup
+   - Import presets from other users or devices
+
+### Calibration Mode
+
+Before printing your final QR codes, use Calibration Mode to ensure perfect alignment:
+
+1. **Enable Calibration Mode** checkbox
+2. Configure your settings (paper size, orientation, transforms, offsets)
+3. **Generate PDF** (no QR image needed)
+4. Print the calibration sheet double-sided
+5. Hold the sheet up to light to check alignment
+6. Adjust transforms and offsets as needed
+7. Repeat until front and back are perfectly aligned
+
+The calibration PDF includes:
+- Corner targets with labels (BL, BR, TL, TR)
+- 3×3 numbered grid
+- Center crosshair
+- Page labels (FRONT/BACK)
 
 ### Calibration Tips
 

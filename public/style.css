@@ -237,6 +237,142 @@ footer {
   opacity: 0.8;
 }
 
+/* Presets Section */
+.presets-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.preset-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-secondary {
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background: #5568d3;
+}
+
+.btn-danger {
+  background: #dc3545;
+}
+
+.btn-danger:hover {
+  background: #c82333;
+}
+
+.preset-import-export {
+  display: flex;
+  gap: 15px;
+  padding-top: 10px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: #667eea;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0;
+}
+
+.btn-link:hover {
+  color: #5568d3;
+}
+
+/* Helper Section */
+.helper-section {
+  background: #f8f9ff;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.helper-section h3 {
+  color: #667eea;
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+}
+
+.helper-hint {
+  font-size: 0.85rem;
+  color: #666;
+  margin-top: 10px;
+  font-style: italic;
+}
+
+/* Troubleshooting */
+.troubleshooting {
+  background: #fff9e6;
+  border-left: 4px solid #ffc107;
+  padding: 15px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  cursor: pointer;
+}
+
+.troubleshooting summary {
+  font-weight: 600;
+  color: #666;
+  user-select: none;
+}
+
+.troubleshooting ul {
+  margin-top: 10px;
+  margin-left: 20px;
+}
+
+.troubleshooting li {
+  color: #555;
+  line-height: 1.8;
+  font-size: 0.9rem;
+}
+
+/* Calibration Section */
+.calibration-section {
+  background: #e8f5e9;
+  border-left: 4px solid #4caf50;
+  padding: 15px;
+  border-radius: 6px;
+  margin-top: 20px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  color: #555;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.calibration-hint {
+  font-size: 0.85rem;
+  color: #666;
+  margin-top: 8px;
+  margin-left: 30px;
+}
+
 @media (max-width: 600px) {
   header h1 {
     font-size: 1.8rem;
@@ -248,5 +384,13 @@ footer {
 
   .card {
     padding: 20px;
+  }
+
+  .preset-buttons {
+    flex-direction: column;
+  }
+
+  .btn-secondary {
+    width: 100%;
   }
 }

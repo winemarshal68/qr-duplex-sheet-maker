@@ -20,10 +20,56 @@ module.exports = async (req, res) => {
     // Extract settings
     const settings = JSON.parse(fields.settings[0]);
 
-    // Get uploaded file
-    const imageFile = files.image[0];
+    // ========== INPUT VALIDATION ==========
+    // Validate rows and columns
+    if (settings.rows < 1 || settings.rows > 12) {
+      return res.status(400).json({ error: 'Rows must be between 1 and 12' });
+    }
+    if (settings.cols < 1 || settings.cols > 12) {
+      return res.status(400).json({ error: 'Columns must be between 1 and 12' });
+    }
+
+    // Validate margins (0-30mm)
+    const { margins } = settings;
+    if (margins.top < 0 || margins.top > 30 ||
+        margins.right < 0 || margins.right > 30 ||
+        margins.bottom < 0 || margins.bottom > 30 ||
+        margins.left < 0 || margins.left > 30) {
+      return res.status(400).json({ error: 'Margins must be between 0 and 30mm' });
+    }
+
+    // Validate gutter (0-30mm)
+    if (settings.gutter < 0 || settings.gutter > 30) {
+      return res.status(400).json({ error: 'Gutter spacing must be between 0 and 30mm' });
+    }
+
+    // Validate offsets (-20 to +20mm)
+    if (settings.backsideOffsetX < -20 || settings.backsideOffsetX > 20 ||
+        settings.backsideOffsetY < -20 || settings.backsideOffsetY > 20) {
+      return res.status(400).json({ error: 'Offsets must be between -20mm and +20mm' });
+    }
+
+    // Get uploaded file (optional in calibration mode)
     const fs = require('fs');
-    const imageBuffer = fs.readFileSync(imageFile.path);
+    let imageFile = null;
+    let imageBuffer = null;
+    let image = null;
+
+    if (files.image && files.image[0]) {
+      imageFile = files.image[0];
+
+      // Validate file size (max 5MB)
+      const fileSize = fs.statSync(imageFile.path).size;
+      if (fileSize > 5 * 1024 * 1024) {
+        fs.unlinkSync(imageFile.path); // Clean up
+        return res.status(400).json({ error: 'File size must be less than 5MB' });
+      }
+
+      imageBuffer = fs.readFileSync(imageFile.path);
+    } else if (!settings.calibrationMode) {
+      // Image is required if not in calibration mode
+      return res.status(400).json({ error: 'Image file is required' });
+    }
 
     // Create PDF
     const pdfDoc = await PDFDocument.create();
@@ -45,13 +91,14 @@ module.exports = async (req, res) => {
     const pageWidth = mmToPoints(paperDims.width);
     const pageHeight = mmToPoints(paperDims.height);
 
-    // Embed image
-    let image;
-    const mimetype = imageFile.headers['content-type'];
-    if (mimetype === 'image/png') {
-      image = await pdfDoc.embedPng(imageBuffer);
-    } else {
-      image = await pdfDoc.embedJpg(imageBuffer);
+    // Embed image (if provided)
+    if (imageFile && imageBuffer) {
+      const mimetype = imageFile.headers['content-type'];
+      if (mimetype === 'image/png') {
+        image = await pdfDoc.embedPng(imageBuffer);
+      } else {
+        image = await pdfDoc.embedJpg(imageBuffer);
+      }
     }
 
     // Calculate layout
@@ -204,24 +251,186 @@ module.exports = async (req, res) => {
       }
     };
 
-    // Page 1: Front
-    const page1 = pdfDoc.addPage([pageWidth, pageHeight]);
-    drawGrid(page1);
+    // Helper function to draw calibration pattern
+    const drawCalibrationPattern = (page, offsetX = 0, offsetY = 0, transform = 'None') => {
+      const black = rgb(0, 0, 0);
+      const gray = rgb(0.5, 0.5, 0.5);
 
-    // Page 2: Back (with transform and offsets)
-    const page2 = pdfDoc.addPage([pageWidth, pageHeight]);
-    const offsetXPt = mmToPoints(settings.backsideOffsetX);
-    const offsetYPt = mmToPoints(settings.backsideOffsetY);
-    drawGrid(page2, offsetXPt, offsetYPt, settings.backsideTransform);
+      // Draw usable area border
+      page.drawRectangle({
+        x: marginLeft + offsetX,
+        y: marginBottom + offsetY,
+        width: usableWidth,
+        height: usableHeight,
+        borderColor: gray,
+        borderWidth: 1
+      });
+
+      // Draw corner targets (large circles with crosshairs)
+      const targetSize = mmToPoints(10);
+      const corners = [
+        { x: startX + offsetX, y: startY + offsetY, label: 'BL' }, // Bottom-left
+        { x: startX + gridWidth + offsetX, y: startY + offsetY, label: 'BR' }, // Bottom-right
+        { x: startX + offsetX, y: startY + gridHeight + offsetY, label: 'TL' }, // Top-left
+        { x: startX + gridWidth + offsetX, y: startY + gridHeight + offsetY, label: 'TR' } // Top-right
+      ];
+
+      corners.forEach(corner => {
+        // Draw circle
+        page.drawCircle({
+          x: corner.x,
+          y: corner.y,
+          size: targetSize / 2,
+          borderColor: black,
+          borderWidth: 2
+        });
+
+        // Draw crosshairs
+        page.drawLine({
+          start: { x: corner.x - targetSize, y: corner.y },
+          end: { x: corner.x + targetSize, y: corner.y },
+          thickness: 1,
+          color: black
+        });
+        page.drawLine({
+          start: { x: corner.x, y: corner.y - targetSize },
+          end: { x: corner.x, y: corner.y + targetSize },
+          thickness: 1,
+          color: black
+        });
+
+        // Draw label
+        page.drawText(corner.label, {
+          x: corner.x - mmToPoints(3),
+          y: corner.y - mmToPoints(2),
+          size: 10,
+          color: black
+        });
+      });
+
+      // Draw grid pattern (3x3 calibration grid)
+      for (let row = 0; row < 3; row++) {
+        for (let col = 0; col < 3; col++) {
+          const x = startX + col * (gridWidth / 3) + offsetX;
+          const y = startY + row * (gridHeight / 3) + offsetY;
+          const w = gridWidth / 3;
+          const h = gridHeight / 3;
+
+          // Draw cell border
+          page.drawRectangle({
+            x,
+            y,
+            width: w,
+            height: h,
+            borderColor: gray,
+            borderWidth: 0.5
+          });
+
+          // Draw cell number
+          const cellNum = row * 3 + col + 1;
+          page.drawText(`${cellNum}`, {
+            x: x + w / 2 - mmToPoints(2),
+            y: y + h / 2 - mmToPoints(2),
+            size: 16,
+            color: black
+          });
+
+          // Draw crop marks if enabled
+          if (settings.cropMarks) {
+            const cropMarkLength = mmToPoints(4);
+            const cropMarkColor = rgb(0, 0, 0);
+            const lineWidth = 0.5;
+
+            // Top-left corner
+            page.drawLine({
+              start: { x: x - cropMarkLength, y },
+              end: { x, y },
+              thickness: lineWidth,
+              color: cropMarkColor
+            });
+            page.drawLine({
+              start: { x, y },
+              end: { x, y: y + cropMarkLength },
+              thickness: lineWidth,
+              color: cropMarkColor
+            });
+
+            // Top-right corner
+            page.drawLine({
+              start: { x: x + w, y },
+              end: { x: x + w + cropMarkLength, y },
+              thickness: lineWidth,
+              color: cropMarkColor
+            });
+            page.drawLine({
+              start: { x: x + w, y },
+              end: { x: x + w, y: y + cropMarkLength },
+              thickness: lineWidth,
+              color: cropMarkColor
+            });
+          }
+        }
+      }
+
+      // Draw center crosshair
+      const centerX = startX + gridWidth / 2 + offsetX;
+      const centerY = startY + gridHeight / 2 + offsetY;
+      const crossSize = mmToPoints(15);
+
+      page.drawLine({
+        start: { x: centerX - crossSize, y: centerY },
+        end: { x: centerX + crossSize, y: centerY },
+        thickness: 2,
+        color: black
+      });
+      page.drawLine({
+        start: { x: centerX, y: centerY - crossSize },
+        end: { x: centerX, y: centerY + crossSize },
+        thickness: 2,
+        color: black
+      });
+
+      // Add page label
+      page.drawText(transform === 'None' ? 'FRONT' : 'BACK', {
+        x: pageWidth / 2 - mmToPoints(8),
+        y: pageHeight - mmToPoints(10),
+        size: 14,
+        color: black
+      });
+    };
+
+    // Check calibration mode
+    if (settings.calibrationMode) {
+      // Generate calibration PDF
+      const page1 = pdfDoc.addPage([pageWidth, pageHeight]);
+      drawCalibrationPattern(page1);
+
+      const page2 = pdfDoc.addPage([pageWidth, pageHeight]);
+      const offsetXPt = mmToPoints(settings.backsideOffsetX);
+      const offsetYPt = mmToPoints(settings.backsideOffsetY);
+      drawCalibrationPattern(page2, offsetXPt, offsetYPt, settings.backsideTransform);
+    } else {
+      // Generate normal QR grid PDF
+      const page1 = pdfDoc.addPage([pageWidth, pageHeight]);
+      drawGrid(page1);
+
+      const page2 = pdfDoc.addPage([pageWidth, pageHeight]);
+      const offsetXPt = mmToPoints(settings.backsideOffsetX);
+      const offsetYPt = mmToPoints(settings.backsideOffsetY);
+      drawGrid(page2, offsetXPt, offsetYPt, settings.backsideTransform);
+    }
 
     // Generate PDF bytes
     const pdfBytes = await pdfDoc.save();
 
-    // Clean up temp file
-    fs.unlinkSync(imageFile.path);
+    // Clean up temp file (if exists)
+    if (imageFile && imageFile.path) {
+      fs.unlinkSync(imageFile.path);
+    }
 
     // Send PDF
-    const filename = `qr_duplex_${settings.paperSize}_${settings.rows}x${settings.cols}.pdf`;
+    const filenamePrefix = settings.calibrationMode ? 'calibration' : 'qr_duplex';
+    const filename = `${filenamePrefix}_${settings.paperSize}_${settings.rows}x${settings.cols}.pdf`;
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.send(Buffer.from(pdfBytes));
