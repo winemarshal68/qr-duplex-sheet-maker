@@ -554,6 +554,7 @@ generateBtn.addEventListener('click', async () => {
   formData.append('settings', JSON.stringify(settings));
 
   try {
+    console.log('POSTING TO', '/api/generate');
     const response = await fetch('/api/generate', {
       method: 'POST',
       body: formData
