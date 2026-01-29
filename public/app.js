@@ -76,7 +76,7 @@ const i18n = {
 
 // Current state
 let currentLang = 'en';
-let uploadedImageId = null;
+let uploadedFile = null;
 
 // DOM elements
 const imageInput = document.getElementById('imageInput');
@@ -110,9 +110,12 @@ langEnBtn.addEventListener('click', () => setLanguage('en'));
 langEsBtn.addEventListener('click', () => setLanguage('es'));
 
 // Image upload handling
-imageInput.addEventListener('change', async (e) => {
+imageInput.addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (!file) return;
+
+  // Store file for later
+  uploadedFile = file;
 
   // Show preview
   const reader = new FileReader();
@@ -122,38 +125,14 @@ imageInput.addEventListener('change', async (e) => {
   };
   reader.readAsDataURL(file);
 
-  // Upload to server
-  showStatus(i18n[currentLang].status_uploading, 'info');
-
-  const formData = new FormData();
-  formData.append('image', file);
-
-  try {
-    const response = await fetch('/api/upload', {
-      method: 'POST',
-      body: formData
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Upload failed');
-    }
-
-    const data = await response.json();
-    uploadedImageId = data.imageId;
-    generateBtn.disabled = false;
-    showStatus(i18n[currentLang].status_upload_success, 'success');
-  } catch (error) {
-    console.error('Upload error:', error);
-    showStatus(i18n[currentLang].status_error + error.message, 'error');
-    uploadedImageId = null;
-    generateBtn.disabled = true;
-  }
+  // Enable generate button
+  generateBtn.disabled = false;
+  showStatus(i18n[currentLang].status_upload_success, 'success');
 });
 
 // Generate PDF
 generateBtn.addEventListener('click', async () => {
-  if (!uploadedImageId) {
+  if (!uploadedFile) {
     showStatus(i18n[currentLang].status_upload_image, 'error');
     return;
   }
@@ -163,7 +142,6 @@ generateBtn.addEventListener('click', async () => {
 
   // Collect settings
   const settings = {
-    imageId: uploadedImageId,
     paperSize: document.getElementById('paperSize').value,
     orientation: document.getElementById('orientation').value,
     margins: {
@@ -181,18 +159,27 @@ generateBtn.addEventListener('click', async () => {
     cropMarks: document.getElementById('cropMarks').checked
   };
 
+  // Create FormData with both image and settings
+  const formData = new FormData();
+  formData.append('image', uploadedFile);
+  formData.append('settings', JSON.stringify(settings));
+
   try {
     const response = await fetch('/api/generate', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(settings)
+      body: formData
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'PDF generation failed');
+      const errorText = await response.text();
+      let errorMessage;
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.error || 'PDF generation failed';
+      } catch {
+        errorMessage = 'PDF generation failed';
+      }
+      throw new Error(errorMessage);
     }
 
     // Download PDF

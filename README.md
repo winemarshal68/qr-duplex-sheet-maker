@@ -22,11 +22,11 @@ Generate duplex-ready PDF sheets with QR codes for double-sided printing. Includ
 - Node.js (v14 or higher)
 - npm (comes with Node.js)
 
-## Setup
+## Local Development
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/YOUR_USERNAME/qr-duplex-sheet-maker.git
+git clone https://github.com/winemarshal68/qr-duplex-sheet-maker.git
 cd qr-duplex-sheet-maker
 ```
 
@@ -35,7 +35,7 @@ cd qr-duplex-sheet-maker
 npm install
 ```
 
-3. Start the server:
+3. Start the local Express server:
 ```bash
 npm start
 ```
@@ -49,6 +49,45 @@ npm run dev
 ```
 http://localhost:3000
 ```
+
+## Deploy to Vercel
+
+This app is optimized for serverless deployment on Vercel.
+
+### Prerequisites
+- Vercel CLI installed: `npm install -g vercel`
+- Logged in to Vercel: `vercel login`
+
+### Deployment Steps
+
+1. From the project root directory:
+```bash
+vercel
+```
+
+2. Follow the prompts (first time):
+   - Set up and deploy? **Y**
+   - Which scope? Select your account
+   - Link to existing project? **N**
+   - Project name? **qr-duplex-sheet-maker** (or your preferred name)
+   - In which directory is your code located? **./**
+   - Want to modify settings? **N**
+
+3. Deploy to production:
+```bash
+vercel --prod
+```
+
+4. Your app will be live at the URL provided by Vercel
+
+### Local Vercel Development
+
+To test the Vercel serverless environment locally:
+```bash
+npm run vercel-dev
+```
+
+This runs `vercel dev` which simulates the Vercel serverless environment on your machine.
 
 ## Usage
 
@@ -73,17 +112,22 @@ For perfect double-sided alignment:
 
 ## Tech Stack
 
-- **Backend**: Node.js + Express
-- **File Upload**: Multer
+- **Backend**: Node.js serverless functions (Vercel)
+- **Local Dev**: Express server
+- **File Upload**: Multiparty (serverless), Multer (local)
 - **PDF Generation**: pdf-lib
 - **Frontend**: Vanilla HTML/CSS/JavaScript
+- **Deployment**: Vercel
 
 ## Project Structure
 
 ```
 qr-duplex-sheet-maker/
-├── server.js           # Express server
+├── server.js           # Express server (local dev)
+├── api/
+│   └── generate.js    # Vercel serverless function
 ├── package.json        # Dependencies and scripts
+├── vercel.json         # Vercel configuration
 ├── public/
 │   ├── index.html     # Main UI
 │   ├── style.css      # Styling
@@ -92,29 +136,18 @@ qr-duplex-sheet-maker/
 └── README.md
 ```
 
-## API Endpoints
-
-### POST /api/upload
-Upload a QR image.
-
-**Request**: multipart/form-data with `image` field
-
-**Response**:
-```json
-{
-  "imageId": "img_0",
-  "filename": "qr.png",
-  "size": 12345
-}
-```
+## API Endpoint
 
 ### POST /api/generate
-Generate PDF with uploaded image.
+Upload image and generate PDF in a single request (optimized for serverless).
 
-**Request**:
+**Request**: multipart/form-data with:
+- `image` (file): PNG or JPG QR image
+- `settings` (JSON string): PDF generation settings
+
+**Settings JSON**:
 ```json
 {
-  "imageId": "img_0",
   "paperSize": "A4",
   "orientation": "Portrait",
   "margins": {
@@ -133,7 +166,7 @@ Generate PDF with uploaded image.
 }
 ```
 
-**Response**: PDF file (application/pdf)
+**Response**: PDF file (application/pdf) with `Content-Disposition` header for download
 
 ## License
 

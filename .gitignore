@@ -83,3 +83,4 @@ Temporary Items
 # Temporary files
 tmp/
 temp/
+.vercel
