@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Duplex Sheet Maker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1 data-i18n="title">QR Duplex Sheet Maker</h1>
+      <div class="language-selector">
+        <button id="lang-en" class="lang-btn active">English</button>
+        <button id="lang-es" class="lang-btn">Español</button>
+      </div>
+    </header>
+
+    <main>
+      <!-- Upload Section -->
+      <section class="card">
+        <h2 data-i18n="upload_title">1. Upload QR Image</h2>
+        <div class="upload-area">
+          <input type="file" id="imageInput" accept="image/png,image/jpeg,image/jpg">
+          <label for="imageInput" class="upload-label" data-i18n="upload_label">Choose PNG or JPG file</label>
+          <div id="preview" class="preview"></div>
+        </div>
+      </section>
+
+      <!-- Page Settings -->
+      <section class="card">
+        <h2 data-i18n="settings_title">2. Page Settings</h2>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label data-i18n="paper_size">Paper Size</label>
+            <select id="paperSize">
+              <option value="A4">A4 (210×297mm)</option>
+              <option value="A3">A3 (297×420mm)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label data-i18n="orientation">Orientation</label>
+            <select id="orientation">
+              <option value="Portrait" data-i18n="portrait">Portrait</option>
+              <option value="Landscape" data-i18n="landscape">Landscape</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label data-i18n="rows">Rows</label>
+            <input type="number" id="rows" value="3" min="1" max="10">
+          </div>
+
+          <div class="form-group">
+            <label data-i18n="columns">Columns</label>
+            <input type="number" id="cols" value="3" min="1" max="10">
+          </div>
+
+          <div class="form-group">
+            <label data-i18n="margin_top">Margin Top (mm)</label>
+            <input type="number" id="marginTop" value="10" min="0" max="50">
+          </div>
+
+          <div class="form-group">
+            <label data-i18n="margin_right">Margin Right (mm)</label>
+            <input type="number" id="marginRight" value="10" min="0" max="50">
+          </div>
+
+          <div class="form-group">
+            <label data-i18n="margin_bottom">Margin Bottom (mm)</label>
+            <input type="number" id="marginBottom" value="10" min="0" max="50">
+          </div>
+
+          <div class="form-group">
+            <label data-i18n="margin_left">Margin Left (mm)</label>
+            <input type="number" id="marginLeft" value="10" min="0" max="50">
+          </div>
+
+          <div class="form-group">
+            <label data-i18n="gutter">Gutter Spacing (mm)</label>
+            <input type="number" id="gutter" value="8" min="0" max="20">
+          </div>
+
+          <div class="form-group checkbox-group">
+            <label>
+              <input type="checkbox" id="cropMarks" checked>
+              <span data-i18n="crop_marks">Crop Marks</span>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <!-- Duplex Backside Settings -->
+      <section class="card">
+        <h2 data-i18n="duplex_title">3. Duplex Backside Settings</h2>
+
+        <div class="info-box">
+          <p data-i18n="calibration_note">
+            Print double-sided and test "flip on short edge" vs "flip on long edge".
+            Use Backside Transform + Offsets to calibrate: print on plain paper, hold to light, adjust, and repeat until aligned.
+          </p>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label data-i18n="backside_transform">Backside Transform</label>
+            <select id="backsideTransform">
+              <option value="None" data-i18n="transform_none">None</option>
+              <option value="MirrorH" data-i18n="transform_mirror_h">Mirror Horizontally</option>
+              <option value="MirrorV" data-i18n="transform_mirror_v">Mirror Vertically</option>
+              <option value="Rotate180" data-i18n="transform_rotate_180" selected>Rotate 180°</option>
+              <option value="Rotate180MirrorH" data-i18n="transform_rotate_mirror">Rotate 180° + Mirror H</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label data-i18n="backside_offset_x">Backside Offset X (mm)</label>
+            <input type="number" id="backsideOffsetX" value="0" step="0.1" min="-50" max="50">
+          </div>
+
+          <div class="form-group">
+            <label data-i18n="backside_offset_y">Backside Offset Y (mm)</label>
+            <input type="number" id="backsideOffsetY" value="0" step="0.1" min="-50" max="50">
+          </div>
+        </div>
+      </section>
+
+      <!-- Generate Button -->
+      <section class="card">
+        <button id="generateBtn" class="generate-btn" disabled>
+          <span data-i18n="generate_pdf">Generate PDF</span>
+        </button>
+        <div id="status" class="status"></div>
+      </section>
+    </main>
+
+    <footer>
+      <p data-i18n="footer">Made with pdf-lib • Open Source</p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
